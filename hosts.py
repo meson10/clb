@@ -67,7 +67,6 @@ class Hosts(object):
     registry = None
     MAX_RETRIES = 2
     SNOOZE = 3
-    last_iter = 0
 
     @classmethod
     def init_registry(cls):
