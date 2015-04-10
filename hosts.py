@@ -90,6 +90,7 @@ class Hosts(object):
                 DIRTY = True
                 host.is_busy = False
                 cls.__hosts__.append(host)
+                cls.snoozed.pop()
 
 
         if DIRTY:
@@ -104,7 +105,7 @@ class Hosts(object):
                 print "Host %s is busy. Marking it as snoozed." % (
                     host.address)
 
-            elif host.retries >= cls.MAX_RETRIES - 1:
+            elif host.retries >= cls.MAX_RETRIES:
                 print "Host %s failed far too often. Marking it as dead." % (
                     host.address)
 
