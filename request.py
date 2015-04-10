@@ -7,23 +7,19 @@ def enable_keep_alive(pool):
 
     pass
 
+MAX_RETRIES = 15
+
 def do():
     """
     Method to perform the actual request.
     """
 
-    NUM = 15
-    MAX_RETRIES = 15
-
-    for x in xrange(NUM):
-        print "============ Fetch: [%s] ============= " % x
-
-        i = 0
-        while i < xrange(MAX_RETRIES):
-            pool = ConnectionPool.get()
-            try:
-                r = pool.request("GET", "/hello")
-            except Exception, e:
-                print "Retrying..."
-            else:
-                break
+    i = 0
+    while i < xrange(MAX_RETRIES):
+        pool = ConnectionPool.get()
+        try:
+            r = pool.request("GET", "/hello")
+        except Exception, e:
+            print "Retrying..."
+        else:
+            break
