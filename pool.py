@@ -21,10 +21,24 @@ class EachPool(object):
         self.host = host
         self.pool = pool
 
+    def is_server_busy(self, req):
+        #Read Headers here to mark server as busy.
+        if "yahoo.com" in self.host.address:
+            return True
+
+        return False
+
     def request(self, *args, **kwargs):
         #Just a proxy to self.pool.request
+        #No wait, it has started doing a lot more.
+
         try:
-            self.pool.request(*args, **kwargs)
+            req = self.pool.request(*args, **kwargs)
+            if self.is_server_busy(req):
+                print "Host %s being marked as busy" % (self.host.address)
+                self.host.mark_busy()
+
+            return req
 
         except Exception, e:
             print "Host %s failed for reason %s" % (

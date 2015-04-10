@@ -12,8 +12,8 @@ def do():
     Method to perform the actual request.
     """
 
-    NUM = 5
-    MAX_RETRIES = 5
+    NUM = 15
+    MAX_RETRIES = 15
 
     for x in xrange(NUM):
         print "============ Fetch: [%s] ============= " % x
@@ -24,6 +24,6 @@ def do():
             try:
                 r = pool.request("GET", "/hello")
             except Exception, e:
-                print "Retrying"
+                print "Retrying..."
             else:
                 break
