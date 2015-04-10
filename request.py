@@ -13,11 +13,12 @@ def do():
     """
 
     NUM = 5
-    MAX_RETRIES = 2
+    MAX_RETRIES = 5
 
     for x in xrange(NUM):
-        i = 0
+        print "============ Fetch: [%s] ============= " % x
 
+        i = 0
         while i < xrange(MAX_RETRIES):
             pool = Pool.get()
             try:
