@@ -1,4 +1,4 @@
-from pool import Pool
+from pool import ConnectionPool
 
 def enable_keep_alive(pool):
     # HTTPConnection.default_socket_options + [
@@ -20,7 +20,7 @@ def do():
 
         i = 0
         while i < xrange(MAX_RETRIES):
-            pool = Pool.get()
+            pool = ConnectionPool.get()
             try:
                 r = pool.request("GET", "/hello")
             except Exception, e:

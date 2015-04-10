@@ -35,7 +35,7 @@ class EachPool(object):
 
 
 @singleton
-class Pool(object):
+class ConnectionPool(object):
     """
     Based on the urllib3 connection pool document available at:
     https://urllib3.readthedocs.org/en/latest/pools.html
