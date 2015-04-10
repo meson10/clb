@@ -3,6 +3,9 @@ from itertools import cycle
 
 from decorators import singleton
 
+class AllHostsDown(Exception):
+    pass
+
 class Host(object):
     """
     Single Host entry. Starts with 0 load and is_alive=True.
@@ -56,19 +59,23 @@ class Hosts(object):
     MAX_RETRIES = 2
 
     @classmethod
+    def init_registry(cls):
+        cls.registry = cycle(cls.__hosts__)
+
+    @classmethod
     def seed(cls, hosts):
         if not isinstance(hosts, list):
             raise Exception("hosts must be an array to start with")
 
         cls.__hosts__ = [Host(addr) for addr in hosts]
-        cls.registry = cycle(cls.__hosts__)
+        cls.init_registry()
 
     @classmethod
     def rearrange_servers(cls):
         new_hosts = []
 
         for host in cls.__hosts__:
-            if host.retries >= cls.MAX_RETRIES:
+            if host.retries >= cls.MAX_RETRIES - 1:
                 print "Host %s failed far too often. Marking it as dead." % (
                     host.address)
 
@@ -77,15 +84,19 @@ class Hosts(object):
             if host.is_alive:
                 new_hosts.append(host)
 
-        cls.registry = cycle(cls.__hosts__)
+        cls.__hosts__ = new_hosts
+        cls.init_registry()
 
     @classmethod
     def get(cls):
         if not cls.registry:
-            raise Exception("Uh oh! All hosts are down.")
+            raise AllHostsDown("Uh oh! All hosts are down.")
 
         #Make this better. Use a proper method than just the next host.
-        host = cls.registry.next()
+        try:
+            host = cls.registry.next()
+        except StopIteration:
+            raise AllHostsDown("Uh oh! All hosts are down.")
 
         if host.retries >= cls.MAX_RETRIES:
             cls.rearrange_servers()

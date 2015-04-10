@@ -36,6 +36,11 @@ class EachPool(object):
 
 @singleton
 class Pool(object):
+    """
+    Based on the urllib3 connection pool document available at:
+    https://urllib3.readthedocs.org/en/latest/pools.html
+    """
+
     __slots__ = ["CACHE"]
 
     CACHE = {}
@@ -50,14 +55,14 @@ class Pool(object):
         #Look for the Pool if it is already cached.
         if not pool:
             #Cached value is missing. Allocate a new Pool.
+
+            print "Seeding a new Connection pool for Host %s" % address
+
             pool = EachPool(
                 host,
                 connection_from_url(address, maxsize=get_pool_size()))
 
             cls.CACHE[address] = pool
-
-        else:
-            print "Reusing Connection pool for %s" % address
 
         return pool
 

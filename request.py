@@ -13,7 +13,7 @@ def do():
     """
 
     NUM = 5
-    MAX_RETRIES = 5
+    MAX_RETRIES = 2
 
     for x in xrange(NUM):
         i = 0
