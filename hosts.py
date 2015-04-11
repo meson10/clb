@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from itertools import cycle
 
-from decorators import singleton
+#from decorators import singleton
 
 def now():
     return datetime.now()
@@ -51,8 +51,6 @@ class Host(object):
     def mark_failure(self, reason=None):
         self.retries += 1
 
-
-@singleton
 class Hosts(object):
     """
     Hosts is a registry of all entries
@@ -60,52 +58,47 @@ class Hosts(object):
     Get() should do the magic of health checks and the right algorithm.
     """
 
-    __slots__ = []
+    __slots__ = ["__hosts__", "snoozed", "registry"]
 
-    snoozed = []
-    __hosts__ = []
-    registry = None
     MAX_RETRIES = 2
-    SNOOZE = 3
+    SNOOZE = 300
 
-    @classmethod
-    def init_registry(cls):
-        cls.registry = cycle(cls.__hosts__)
+    def init_registry(self):
+        self.registry = cycle(self.__hosts__)
 
-    @classmethod
-    def seed(cls, hosts):
+    def __init__(self, hosts):
         if not isinstance(hosts, list):
             raise Exception("hosts must be an array to start with")
 
-        cls.__hosts__ = [Host(addr) for addr in hosts]
-        cls.init_registry()
+        self.__hosts__ = [Host(addr) for addr in hosts]
+        self.snoozed = []
+        self.registry = None
+        self.init_registry()
 
-    @classmethod
-    def revive_snoozed(cls):
+    def revive_snoozed(self):
         DIRTY = False
 
-        for host in cls.snoozed:
-            if now() - host.last_used > timedelta(seconds=cls.SNOOZE):
+        for host in self.snoozed:
+            if now() - host.last_used > timedelta(seconds=self.SNOOZE):
                 print "Enough sleep %s. Get back to Work" % host.address
                 DIRTY = True
                 host.is_busy = False
-                cls.__hosts__.append(host)
-                cls.snoozed.pop()
+                self.__hosts__.append(host)
+                self.snoozed.pop()
 
 
         if DIRTY:
-            cls.rearrange_servers()
+            self.rearrange_servers()
 
-    @classmethod
-    def rearrange_servers(cls):
+    def rearrange_servers(self):
         new_hosts = []
 
-        for host in cls.__hosts__:
+        for host in self.__hosts__:
             if host.is_busy:
                 print "Host %s is busy. Marking it as snoozed." % (
                     host.address)
 
-            elif host.retries >= cls.MAX_RETRIES:
+            elif host.retries >= self.MAX_RETRIES:
                 print "Host %s failed far too often. Marking it as dead." % (
                     host.address)
 
@@ -114,36 +107,31 @@ class Hosts(object):
             elif host.is_alive:
                 new_hosts.append(host)
 
-        cls.__hosts__ = new_hosts
-        cls.init_registry()
+        self.__hosts__ = new_hosts
+        self.init_registry()
 
-    @classmethod
-    def get(cls):
-        if not cls.registry:
+    def get(self):
+        if not self.registry:
             raise AllHostsDown("Uh oh! All hosts are down.")
 
-        cls.revive_snoozed()
+        self.revive_snoozed()
 
         #Make this better. Use a proper method than just the next host.
         try:
-            host = cls.registry.next()
+            host = self.registry.next()
         except StopIteration:
             raise AllHostsDown("Uh oh! All hosts are down.")
 
-        if host.retries >= cls.MAX_RETRIES:
-            cls.rearrange_servers()
-            return cls.get()
+        if host.retries >= self.MAX_RETRIES:
+            self.rearrange_servers()
+            return self.get()
 
         if host.is_busy:
-            cls.snoozed.append(host)
-            cls.rearrange_servers()
-            return cls.get()
+            self.snoozed.append(host)
+            self.rearrange_servers()
+            return self.get()
 
         host.mark_used()
 
         print "Electing %s from registry." % host
         return host
-
-
-def seed(hosts):
-    Hosts.seed(hosts)
